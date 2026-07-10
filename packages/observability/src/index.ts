@@ -34,6 +34,17 @@ export interface Metrics {
   rankingLatencyMs: number;
 }
 
+export interface Metrics {
+  retrievedTokens: number;
+  compressedTokens: number;
+  savedTokens: number;
+  latencyMs: number;
+  cacheHits: number;
+  cacheMisses: number;
+  embeddingLatencyMs: number;
+  rankingLatencyMs: number;
+}
+
 export function createMetrics(): Metrics {
   return {
     retrievedTokens: 0,
@@ -46,3 +57,5 @@ export function createMetrics(): Metrics {
     rankingLatencyMs: 0,
   };
 }
+
+export * from "./metrics.js";

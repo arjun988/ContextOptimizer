@@ -94,4 +94,21 @@ export const MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_graph_edges_kind ON graph_edges(kind);
     `,
   },
+  {
+    version: 2,
+    sql: `
+      CREATE TABLE IF NOT EXISTS memory_entries (
+        id TEXT PRIMARY KEY,
+        category TEXT NOT NULL,
+        key TEXT NOT NULL,
+        content TEXT NOT NULL,
+        source_hash TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_memory_category ON memory_entries(category);
+      CREATE INDEX IF NOT EXISTS idx_memory_key ON memory_entries(key);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_memory_category_key ON memory_entries(category, key);
+    `,
+  },
 ];

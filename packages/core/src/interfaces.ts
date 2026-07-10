@@ -1,5 +1,7 @@
 import type {
   Chunk,
+  CompressRequest,
+  CompressionResult,
   ContextRequest,
   ContextResponse,
   EmbeddingRequest,
@@ -10,6 +12,8 @@ import type {
   GraphNode,
   ImportRecord,
   IndexResult,
+  MemoryEntry,
+  MemoryQuery,
   NeighborQuery,
   ParseResult,
   RankingCandidate,
@@ -61,6 +65,10 @@ export interface StorageAdapter {
   getGraphNode(id: string): Promise<GraphNode | null>;
   getGraphNeighbors(query: NeighborQuery): Promise<GraphNeighbor[]>;
   getNodeInDegree(nodeId: string): Promise<number>;
+
+  upsertMemory(entry: MemoryEntry): Promise<void>;
+  getMemory(query: MemoryQuery): Promise<MemoryEntry[]>;
+  deleteMemory(id: string): Promise<void>;
 }
 
 export interface Embedder {
@@ -100,7 +108,19 @@ export interface TokenCounter {
 }
 
 export interface Compressor {
+  readonly name: string;
   compress(text: string, targetTokens?: number): Promise<string>;
+}
+
+export interface CompressionPipeline {
+  compress(request: CompressRequest): Promise<CompressionResult>;
+}
+
+export interface MemoryStore {
+  remember(entry: Omit<MemoryEntry, "id" | "createdAt" | "updatedAt">): Promise<MemoryEntry>;
+  recall(query: MemoryQuery): Promise<MemoryEntry[]>;
+  forget(id: string): Promise<void>;
+  getProjectSummary(): Promise<string | null>;
 }
 
 export interface CacheAdapter<T> {

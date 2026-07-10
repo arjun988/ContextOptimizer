@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@contextoptimizer/cache": "workspace:*",
+    "@contextoptimizer/compression": "workspace:*",
     "@contextoptimizer/core": "workspace:*",
     "@contextoptimizer/embeddings": "workspace:*",
     "@contextoptimizer/graph": "workspace:*",
     "@contextoptimizer/indexer": "workspace:*",
+    "@contextoptimizer/memory": "workspace:*",
     "@contextoptimizer/observability": "workspace:*",
     "@contextoptimizer/parser": "workspace:*",
     "@contextoptimizer/ranking": "workspace:*",

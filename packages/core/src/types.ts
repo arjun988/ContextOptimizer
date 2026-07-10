@@ -266,3 +266,62 @@ export interface RankingCandidate {
   endLine: number;
   kind: "code" | "test" | "doc";
 }
+
+export type MemoryCategory =
+  | "project_summary"
+  | "architecture"
+  | "conventions"
+  | "frequent_symbols"
+  | "conversation"
+  | "previous_retrieval";
+
+export interface MemoryEntry {
+  id: string;
+  category: MemoryCategory;
+  key: string;
+  content: string;
+  sourceHash?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface MemoryQuery {
+  category?: MemoryCategory;
+  key?: string;
+  limit?: number;
+}
+
+export interface CompressionStageResult {
+  stage: string;
+  tokensIn: number;
+  tokensOut: number;
+  durationMs: number;
+}
+
+export interface CompressionResult {
+  compressed: string;
+  originalTokens: number;
+  compressedTokens: number;
+  savedTokens: number;
+  savedPercent: number;
+  stages: CompressionStageResult[];
+  preservedIdentifiers: string[];
+}
+
+export interface CompressRequest {
+  text: string;
+  targetTokens?: number;
+  snippets?: RankedSnippet[];
+}
+
+export interface BudgetRequest {
+  snippets: RankedSnippet[];
+  budget: number;
+}
+
+export interface BudgetResponse {
+  snippets: RankedSnippet[];
+  totalTokens: number;
+  budget: number;
+  utilization: number;
+}

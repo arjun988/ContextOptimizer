@@ -51,3 +51,32 @@ export const RankingWeightsSchema = z.object({
   recency: z.number().min(0).max(1),
   popularity: z.number().min(0).max(1),
 });
+
+export const MemoryEntrySchema = z.object({
+  category: z.enum([
+    "project_summary",
+    "architecture",
+    "conventions",
+    "frequent_symbols",
+    "conversation",
+    "previous_retrieval",
+  ]),
+  key: z.string().min(1),
+  content: z.string().min(1),
+  sourceHash: z.string().optional(),
+});
+
+export const MemoryQuerySchema = z.object({
+  category: z.string().optional(),
+  key: z.string().optional(),
+  limit: z.number().int().positive().optional(),
+});
+
+export const CompressRequestSchema = z.object({
+  text: z.string().min(1),
+  targetTokens: z.number().int().positive().optional(),
+});
+
+export const BudgetRequestSchema = z.object({
+  budget: z.number().int().positive(),
+});

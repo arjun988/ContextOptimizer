@@ -1,0 +1,21 @@
+{
+  "name": "@contextoptimizer/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": { "contextoptimizer-api": "./dist/index.js" },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "start": "node dist/index.js",
+    "test": "vitest run --passWithNoTests src",
+    "lint": "biome check src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextoptimizer/core": "workspace:*",
+    "@contextoptimizer/engine": "workspace:*",
+    "fastify": "^5.2.1",
+    "@fastify/cors": "^10.0.2"
+  },
+  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+}

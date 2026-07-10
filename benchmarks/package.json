@@ -1,0 +1,17 @@
+{
+  "name": "@contextoptimizer/benchmarks",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --clean",
+    "bench": "node dist/index.js",
+    "test": "vitest run --passWithNoTests src",
+    "lint": "biome check src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextoptimizer/engine": "workspace:*"
+  },
+  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+}

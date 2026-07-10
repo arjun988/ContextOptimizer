@@ -7,6 +7,8 @@ import type {
   GraphNeighbor,
   GraphNode,
   ImportRecord,
+  MemoryEntry,
+  MemoryQuery,
   NeighborQuery,
   ReferenceRecord,
   StorageAdapter,
@@ -461,6 +463,68 @@ export class SqliteStorage implements StorageAdapter {
       .prepare("SELECT COUNT(*) as count FROM graph_edges WHERE to_id = ?")
       .get(nodeId) as { count: number };
     return row.count;
+  }
+
+  async upsertMemory(entry: MemoryEntry): Promise<void> {
+    this.db
+      .prepare(
+        `INSERT INTO memory_entries (id, category, key, content, source_hash, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           category = excluded.category,
+           key = excluded.key,
+           content = excluded.content,
+           source_hash = excluded.source_hash,
+           updated_at = excluded.updated_at`,
+      )
+      .run(
+        entry.id,
+        entry.category,
+        entry.key,
+        entry.content,
+        entry.sourceHash ?? null,
+        entry.createdAt,
+        entry.updatedAt,
+      );
+  }
+
+  async getMemory(query: MemoryQuery): Promise<MemoryEntry[]> {
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (query.category) {
+      conditions.push("category = ?");
+      params.push(query.category);
+    }
+    if (query.key) {
+      conditions.push("key = ?");
+      params.push(query.key);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const limit = query.limit ?? 100;
+
+    const rows = this.db
+      .prepare(`SELECT * FROM memory_entries ${where} ORDER BY updated_at DESC LIMIT ?`)
+      .all(...params, limit) as Record<string, unknown>[];
+
+    return rows.map((r) => this.mapMemory(r));
+  }
+
+  async deleteMemory(id: string): Promise<void> {
+    this.db.prepare("DELETE FROM memory_entries WHERE id = ?").run(id);
+  }
+
+  private mapMemory(row: Record<string, unknown>): MemoryEntry {
+    return {
+      id: row.id as string,
+      category: row.category as MemoryEntry["category"],
+      key: row.key as string,
+      content: row.content as string,
+      sourceHash: (row.source_hash as string) ?? undefined,
+      createdAt: row.created_at as number,
+      updatedAt: row.updated_at as number,
+    };
   }
 
   private mapFile(row: Record<string, unknown>): FileRecord {

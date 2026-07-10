@@ -5,6 +5,7 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/*/package.json ./packages/
+COPY apps/*/package.json ./apps/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS build
@@ -14,7 +15,11 @@ RUN pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/node_modules ./node_modules
-COPY package.json ./
-CMD ["node", "--version"]
+COPY package.json pnpm-workspace.yaml ./
+ENV PORT=3100
+EXPOSE 3100
+CMD ["node", "apps/api/dist/index.js"]

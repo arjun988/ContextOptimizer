@@ -1,15 +1,21 @@
 # ContextOptimizer
 
-A production-grade, open-source **AI Context Optimization Engine** — middleware between any AI coding assistant and a repository. Retrieves the minimum context needed to solve a task while maintaining high accuracy.
+A production-grade, open-source **AI Context Optimization Engine** — middleware between any AI coding assistant and a repository.
 
-## Features (Phases 0–4)
+## Features (Phases 0–8)
 
-- **Monorepo foundation** — pnpm + Turborepo, Biome, Vitest, CI
-- **Repository indexer** — gitignore-aware scanning, incremental re-indexing, symbol table
-- **AST parser** — tree-sitter for TypeScript, JavaScript, Python, Go, Rust, Java, C, C++
-- **Dependency graph** — files, symbols, imports, calls; traversal by distance
-- **Semantic search** — pluggable embeddings (OpenAI, Voyage, local, fake) + hybrid BM25
-- **Context retrieval** — multi-factor ranking with token budgets
+- **Indexer + Parser** — tree-sitter, incremental indexing, symbol table
+- **Dependency Graph** — traversal by distance, cross-file resolution
+- **Semantic Search** — hybrid vector + BM25 search
+- **Context Retrieval** — multi-factor ranking with token budgets
+- **Compression** — dedupe, merge, skeleton summarization with identifier preservation
+- **Memory** — project summaries, conventions, conversation history
+- **REST API** — Fastify server with OpenAPI-ready routes
+- **CLI** — `omni` commands for index, search, context, memory, budget, graph, doctor
+- **TypeScript SDK** — in-process and remote client
+- **MCP Server** — 8 tools for Cursor, Claude Code, Kiro
+- **Observability** — Prometheus metrics, structured logging
+- **Benchmarks** — compare vs naive retrieval and simple RAG
 
 ## Quick Start
 
@@ -19,50 +25,96 @@ pnpm build
 pnpm test
 ```
 
-## Usage
+## CLI
+
+```bash
+# Index the current repo
+pnpm --filter @contextoptimizer/cli exec omni index
+
+# Search semantically
+pnpm --filter @contextoptimizer/cli exec omni search "where is auth token refreshed"
+
+# Get budgeted context
+pnpm --filter @contextoptimizer/cli exec omni context "fix the login bug" --budget 8000
+
+# Health check
+pnpm --filter @contextoptimizer/cli exec omni doctor
+```
+
+## REST API
+
+```bash
+REPO_PATH=/path/to/repo pnpm --filter @contextoptimizer/api start
+```
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/metrics` | GET | Prometheus metrics |
+| `/index` | POST | Index repository |
+| `/search` | POST | Semantic search |
+| `/context` | POST | Get ranked context |
+| `/compress` | POST | Compress prompt |
+| `/budget` | POST | Fit snippets in budget |
+| `/symbols` | POST | Query symbols |
+| `/graph` | POST | Graph neighbors |
+| `/memory` | POST | Remember / recall |
+
+## TypeScript SDK
 
 ```typescript
-import { createEngine } from "@contextoptimizer/engine";
+import { createClient } from "@contextoptimizer/sdk-ts";
 
-const engine = createEngine({ repoPath: "/path/to/your/repo" });
-await engine.initialize();
+// In-process
+const client = createClient({ repoPath: "/path/to/repo" });
+await client.initialize();
+const context = await client.getContext({ task: "fix login bug", budget: 8000 });
 
-// Index the repository
-const result = await engine.index();
-console.log(`Indexed ${result.stats.symbolsExtracted} symbols`);
+// Remote
+const remote = createClient({ baseUrl: "http://localhost:3100" });
+const results = await remote.search({ text: "auth token" });
+```
 
-// Search semantically
-const results = await engine.search({ text: "where is auth token refreshed" });
+## MCP Server (Cursor / Claude Code)
 
-// Get ranked context within a token budget
-const context = await engine.getContext({
-  task: "fix the login bug",
-  currentFile: "src/login.ts",
-  cursorPosition: { line: 10, column: 0 },
-  budget: 8000,
-});
+Add to your MCP config:
 
-await engine.close();
+```json
+{
+  "mcpServers": {
+    "contextoptimizer": {
+      "command": "node",
+      "args": ["path/to/apps/mcp-server/dist/index.js"],
+      "env": { "REPO_PATH": "/path/to/your/repo" }
+    }
+  }
+}
+```
+
+Tools: `search_symbols`, `find_dependencies`, `retrieve_context`, `project_summary`, `search_docs`, `conversation_summary`, `budget_context`, `compress_prompt`
+
+## Benchmarks
+
+```bash
+pnpm --filter @contextoptimizer/benchmarks bench
 ```
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| `@contextoptimizer/core` | Types, interfaces, Zod schemas |
-| `@contextoptimizer/indexer` | Repo scanner + incremental indexing |
-| `@contextoptimizer/parser` | tree-sitter AST parsing |
-| `@contextoptimizer/graph` | Dependency graph |
-| `@contextoptimizer/embeddings` | Embedding providers |
-| `@contextoptimizer/vector-store` | Vector storage (in-memory, LanceDB) |
-| `@contextoptimizer/retrieval` | Context retrieval + hybrid search |
-| `@contextoptimizer/ranking` | Multi-factor ranking |
-| `@contextoptimizer/tokenizer` | Token counting + budgets |
+| `@contextoptimizer/core` | Types, interfaces, schemas |
 | `@contextoptimizer/engine` | High-level facade |
+| `@contextoptimizer/compression` | Prompt compression pipeline |
+| `@contextoptimizer/memory` | Persistent project memory |
+| `@contextoptimizer/sdk-ts` | TypeScript SDK |
+| `@contextoptimizer/api` | REST API server |
+| `@contextoptimizer/cli` | `omni` CLI |
+| `@contextoptimizer/mcp` | MCP server |
 
 ## Roadmap
 
-See [ROADMAP.md](./ROADMAP.md) for the full phased plan.
+See [ROADMAP.md](./ROADMAP.md).
 
 ## License
 
