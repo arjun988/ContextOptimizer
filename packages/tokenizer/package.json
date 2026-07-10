@@ -1,0 +1,19 @@
+{
+  "name": "@contextoptimizer/tokenizer",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "test": "vitest run --passWithNoTests src",
+    "lint": "biome check src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@contextoptimizer/core": "workspace:*",
+    "js-tiktoken": "^1.0.19"
+  },
+  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+}

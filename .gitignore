@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.turbo/
+coverage/
+*.db
+*.db-journal
+*.lance/
+.data/
+.env
+.DS_Store
+*.log
