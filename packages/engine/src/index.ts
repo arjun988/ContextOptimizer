@@ -105,7 +105,15 @@ export class ContextOptimizerEngine {
   async initialize(): Promise<void> {
     await this.storage.initialize();
     await this.vectorStore.initialize();
+    await this.warmVectorStore();
     this.logger.info({ repoPath: this.config.repoPath }, "Engine initialized");
+  }
+
+  private async warmVectorStore(): Promise<void> {
+    const chunks = await this.storage.getChunks();
+    if (chunks.length > 0) {
+      await this.semanticSearch.indexChunks(chunks);
+    }
   }
 
   async close(): Promise<void> {
@@ -217,7 +225,7 @@ export class ContextOptimizerEngine {
       storage: true,
       indexed: files.length > 0,
       chunks: chunks.length > 0,
-      vectors: vectorCount >= 0,
+      vectors: chunks.length === 0 || vectorCount > 0,
       repoExists: true,
     };
     return { healthy: Object.values(checks).every(Boolean), checks };

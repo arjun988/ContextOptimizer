@@ -54,6 +54,28 @@ describe("ContextOptimizerEngine", () => {
     }
   });
 
+  it("searches after reopening engine in a new process", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "ctxopt-"));
+    const engine = createEngine({ repoPath: fixtureRepo, dataDir });
+
+    try {
+      await engine.initialize();
+      await engine.index();
+      await engine.close();
+
+      const reopened = createEngine({ repoPath: fixtureRepo, dataDir });
+      await reopened.initialize();
+      const searchResults = await reopened.search({
+        text: "where is auth token refreshed",
+        limit: 5,
+      });
+      expect(searchResults.length).toBeGreaterThan(0);
+      await reopened.close();
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
+  });
+
   it("incrementally re-indexes only changed files", async () => {
     const dataDir = await mkdtemp(join(tmpdir(), "ctxopt-"));
     const engine = createEngine({ repoPath: fixtureRepo, dataDir });
@@ -62,8 +84,10 @@ describe("ContextOptimizerEngine", () => {
       await engine.initialize();
       const first = await engine.index();
       const second = await engine.index();
-      expect(second.stats.filesSkipped).toBe(first.stats.filesIndexed);
       expect(second.stats.filesIndexed).toBe(0);
+      expect(second.stats.filesSkipped).toBe(
+        first.stats.filesIndexed + first.stats.filesSkipped,
+      );
     } finally {
       await engine.close();
       await rm(dataDir, { recursive: true, force: true });

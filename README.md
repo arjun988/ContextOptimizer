@@ -28,17 +28,21 @@ pnpm test
 ## CLI
 
 ```bash
-# Index the current repo
-pnpm --filter @contextoptimizer/cli exec omni index
+# Build once, then run from the repo root (indexes the current directory)
+pnpm build
+pnpm omni index
+
+# Or call the linked binary directly
+pnpm exec omni index
 
 # Search semantically
-pnpm --filter @contextoptimizer/cli exec omni search "where is auth token refreshed"
+pnpm omni search "where is auth token refreshed"
 
 # Get budgeted context
-pnpm --filter @contextoptimizer/cli exec omni context "fix the login bug" --budget 8000
+pnpm omni context "fix the login bug" --budget 8000
 
 # Health check
-pnpm --filter @contextoptimizer/cli exec omni doctor
+pnpm omni doctor
 ```
 
 ## REST API

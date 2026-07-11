@@ -4,6 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
+    "omni": "pnpm exec omni",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
@@ -12,6 +13,7 @@
     "check": "biome check --write ."
   },
   "devDependencies": {
+    "@contextoptimizer/cli": "workspace:*",
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.10.5",
     "madge": "^8.0.0",
