@@ -15,6 +15,21 @@ const server = new McpServer({
 });
 
 server.tool(
+  "index_repository",
+  "Index or re-index the repository. Run this before other tools on a new project.",
+  { force: z.boolean().optional() },
+  async ({ force }) => {
+    const result = await engine.index({ force });
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  },
+);
+
+server.tool("doctor", "Check index health and readiness", {}, async () => {
+  const result = await engine.doctor();
+  return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+});
+
+server.tool(
   "search_symbols",
   "Search for symbols in the indexed codebase by name or semantic query",
   { query: z.string(), limit: z.number().optional() },

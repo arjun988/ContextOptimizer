@@ -15,15 +15,16 @@ A production-grade, open-source **AI Context Optimization Engine** — middlewar
 | **Memory** | Project summaries, architecture notes, conversation history |
 | **Observability** | Prometheus metrics, structured logging |
 
-## Interfaces
+## Primary interface: MCP
+
+Most users run ContextOptimizer as an **MCP server** in Cursor, Claude Code, or Kiro. The agent indexes your repo and retrieves ranked context via tools — no CLI required.
 
 | Interface | Use case |
 |-----------|----------|
-| **CLI** (`omni`) | Local dev, scripts, CI |
-| **REST API** | Team-shared index server, remote clients |
-| **MCP Server** | Cursor, Claude Code, Kiro, any MCP client |
-| **TypeScript SDK** | In-process or HTTP client in Node apps |
-| **Python SDK** | Scripts, notebooks, backend integrations |
+| **MCP Server** (recommended) | Cursor, Claude Code, Kiro — index, search, retrieve context |
+| **REST API** | Team-shared index server |
+| **TypeScript / Python SDK** | Custom integrations |
+| **CLI** (`omni`) | Scripts, debugging, CI |
 
 ---
 
@@ -31,14 +32,13 @@ A production-grade, open-source **AI Context Optimization Engine** — middlewar
 
 - **Node.js** 22+
 - **pnpm** 9+ (`corepack enable && corepack prepare pnpm@9.15.4 --activate`)
-- **Python** 3.10+ (optional, for Python SDK)
-- **Docker** (optional, for Postgres + API via compose)
+- **Cursor / Claude Desktop / Kiro** (or any MCP client)
 
 ---
 
-## Installation
+## Install & configure MCP (5 minutes)
 
-Clone and build from source:
+### 1. Clone and build
 
 ```bash
 git clone https://github.com/contextoptimizer/contextoptimizer.git
@@ -47,53 +47,106 @@ pnpm install
 pnpm build
 ```
 
-The CLI (`omni`) is linked automatically after install. Verify:
+### 2. Add MCP to Cursor
+
+Copy the example config into your project (or global Cursor MCP settings):
 
 ```bash
-pnpm omni doctor
+# From the ContextOptimizer repo root
+mkdir -p .cursor
+cp mcp.json.example .cursor/mcp.json
 ```
 
-Index data is stored in `.contextoptimizer/` in the repo root (SQLite by default).
+Or paste into **Cursor Settings → MCP**:
+
+```json
+{
+  "mcpServers": {
+    "contextoptimizer": {
+      "command": "node",
+      "args": ["C:/absolute/path/to/ContextOptimizer/apps/mcp-server/dist/index.js"],
+      "env": {
+        "REPO_PATH": "C:/absolute/path/to/your/project"
+      }
+    }
+  }
+}
+```
+
+Use **absolute paths**. Set `REPO_PATH` to the codebase you want indexed (your app repo, not necessarily the ContextOptimizer repo).
+
+Restart Cursor after saving MCP config.
+
+### 3. Use in chat
+
+Ask the agent to use ContextOptimizer tools:
+
+```
+Use contextoptimizer to index this repository, then retrieve context for fixing the login bug.
+```
+
+Or step by step:
+
+1. **Index** — agent calls `index_repository`
+2. **Check** — agent calls `doctor`
+3. **Retrieve** — agent calls `retrieve_context` with your task
+
+Index data is stored in `<REPO_PATH>/.contextoptimizer/` (SQLite).
+
+### 4. Verify locally (optional)
+
+```bash
+pnpm --filter @contextoptimizer/mcp test
+```
+
+Runs an end-to-end MCP test: list tools → index → doctor → retrieve context.
 
 ---
 
-## Quick start
+## MCP tools (10)
+
+| Tool | Description |
+|------|-------------|
+| `index_repository` | Index or re-index the repo (`force: true` for full rebuild) |
+| `doctor` | Health check — storage, chunks, vectors |
+| `retrieve_context` | Ranked, budget-aware context for a coding task |
+| `search_symbols` | Search symbols by name + semantic query |
+| `find_dependencies` | Graph neighbors within N hops |
+| `project_summary` | Stored project summary + top symbols |
+| `search_docs` | Semantic search in `.md` files |
+| `conversation_summary` | Remember / recall conversation summaries |
+| `budget_context` | Retrieve context and fit within token budget |
+| `compress_prompt` | Compress text while preserving identifiers |
+
+**Example prompts**
+
+- "Index this repo with contextoptimizer"
+- "Use retrieve_context for: refactor the auth module, budget 6000"
+- "Search symbols for refreshToken"
+- "Find dependencies of sym:abc123 within 2 hops"
+
+---
+
+## Quick start (CLI — optional)
+
+For debugging without an MCP client:
 
 ```bash
-# 1. Index the current directory
 pnpm omni index
-
-# 2. Search for relevant code
 pnpm omni search "auth token refresh"
-
-# 3. Get ranked, budgeted context for a task
 pnpm omni context "fix the login bug" --budget 8000
-
-# 4. Health check
 pnpm omni doctor
 ```
 
-On a second `index` run, `filesIndexed: 0` with high `filesSkipped` is normal — incremental indexing skips unchanged files.
-
-Force a full re-index:
+On re-index, `filesIndexed: 0` with high `filesSkipped` is normal (incremental indexing).
 
 ```bash
-pnpm omni index --force
-```
-
-Index a different repo:
-
-```bash
-# PowerShell
-$env:REPO_PATH="C:\path\to\repo"; pnpm omni index
-
-# bash
-REPO_PATH=/path/to/repo pnpm omni index
+pnpm omni index --force   # full rebuild
 ```
 
 ---
 
-## CLI (`omni`)
+## CLI (`omni`) — optional
 
 All commands run from the repo root (or set `REPO_PATH`).
 
@@ -167,75 +220,6 @@ curl -X POST http://localhost:3100/search \
   -H "Content-Type: application/json" \
   -d '{"text": "auth token refresh", "limit": 5}'
 ```
-
----
-
-## MCP Server (Cursor / Claude Code / Kiro)
-
-The MCP server exposes 8 tools over stdio so AI assistants can index, search, and retrieve context directly.
-
-### 1. Build
-
-```bash
-pnpm --filter @contextoptimizer/mcp build
-```
-
-### 2. Configure your MCP client
-
-**Cursor** — add to `.cursor/mcp.json` (or global MCP settings):
-
-```json
-{
-  "mcpServers": {
-    "contextoptimizer": {
-      "command": "node",
-      "args": ["C:/Users/You/Desktop/ContextOptimizer/apps/mcp-server/dist/index.js"],
-      "env": {
-        "REPO_PATH": "C:/Users/You/path/to/your/repo"
-      }
-    }
-  }
-}
-```
-
-Use absolute paths. On Windows, forward slashes work in JSON.
-
-**Claude Desktop** — add to `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "contextoptimizer": {
-      "command": "node",
-      "args": ["/absolute/path/to/ContextOptimizer/apps/mcp-server/dist/index.js"],
-      "env": { "REPO_PATH": "/absolute/path/to/your/repo" }
-    }
-  }
-}
-```
-
-### 3. Index first
-
-Run `pnpm omni index` in the target repo (or use the API) before MCP tools return useful results.
-
-### MCP tools
-
-| Tool | Description |
-|------|-------------|
-| `search_symbols` | Search symbols by name + semantic query |
-| `find_dependencies` | Graph neighbors within N hops |
-| `retrieve_context` | Ranked, budget-aware context for a task |
-| `project_summary` | Stored project summary + top symbols |
-| `search_docs` | Semantic search filtered to `.md` files |
-| `conversation_summary` | Remember or recall conversation summaries |
-| `budget_context` | Retrieve context and fit within token budget |
-| `compress_prompt` | Compress text while preserving identifiers |
-
-**Example prompts in Cursor**
-
-- "Use contextoptimizer to retrieve context for fixing the login bug"
-- "Search symbols for refreshToken"
-- "Find dependencies of the AuthService class"
 
 ---
 

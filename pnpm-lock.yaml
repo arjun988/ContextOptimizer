@@ -17,6 +17,9 @@ importers:
       '@contextoptimizer/cli':
         specifier: workspace:*
         version: link:apps/cli
+      '@contextoptimizer/mcp':
+        specifier: workspace:*
+        version: link:apps/mcp-server
       '@types/node':
         specifier: ^22.10.5
         version: 22.20.1

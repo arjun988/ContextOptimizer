@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "contextoptimizer": {
+      "command": "node",
+      "args": ["./apps/mcp-server/dist/index.js"],
+      "cwd": "C:/absolute/path/to/ContextOptimizer",
+      "env": {
+        "REPO_PATH": "C:/absolute/path/to/your/project"
+      }
+    }
+  }
+}
