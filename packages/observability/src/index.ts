@@ -1,5 +1,8 @@
 import type { Logger } from "@contextoptimizer/core";
 import pino from "pino";
+import type { Metrics } from "./types.js";
+
+export type { Metrics } from "./types.js";
 
 export interface LoggerOptions {
   level?: string;
@@ -21,28 +24,6 @@ export function createLogger(options: LoggerOptions = {}): Logger {
   });
 
   return wrap(pinoLogger);
-}
-
-export interface Metrics {
-  retrievedTokens: number;
-  compressedTokens: number;
-  savedTokens: number;
-  latencyMs: number;
-  cacheHits: number;
-  cacheMisses: number;
-  embeddingLatencyMs: number;
-  rankingLatencyMs: number;
-}
-
-export interface Metrics {
-  retrievedTokens: number;
-  compressedTokens: number;
-  savedTokens: number;
-  latencyMs: number;
-  cacheHits: number;
-  cacheMisses: number;
-  embeddingLatencyMs: number;
-  rankingLatencyMs: number;
 }
 
 export function createMetrics(): Metrics {

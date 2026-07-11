@@ -85,9 +85,7 @@ describe("ContextOptimizerEngine", () => {
       const first = await engine.index();
       const second = await engine.index();
       expect(second.stats.filesIndexed).toBe(0);
-      expect(second.stats.filesSkipped).toBe(
-        first.stats.filesIndexed + first.stats.filesSkipped,
-      );
+      expect(second.stats.filesSkipped).toBe(first.stats.filesIndexed + first.stats.filesSkipped);
     } finally {
       await engine.close();
       await rm(dataDir, { recursive: true, force: true });

@@ -1,4 +1,4 @@
-import type { Metrics } from "./index.js";
+import type { Metrics } from "./types.js";
 
 export class MetricsCollector {
   private metrics: Metrics;

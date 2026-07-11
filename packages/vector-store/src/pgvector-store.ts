@@ -117,13 +117,15 @@ export class PgVectorStore implements VectorStore {
     limit: number,
     filter?: Record<string, unknown>,
   ): Promise<Array<{ id: string; score: number; metadata: Record<string, unknown> }>> {
-    const result = await this.pool.query(`SELECT id, vector::text, metadata FROM ${this.tableName}`);
+    const result = await this.pool.query(
+      `SELECT id, vector::text, metadata FROM ${this.tableName}`,
+    );
     const scored: Array<{ id: string; score: number; metadata: Record<string, unknown> }> = [];
 
     for (const row of result.rows) {
-      const metadata = (typeof row.metadata === "string"
-        ? JSON.parse(row.metadata)
-        : row.metadata) as Record<string, unknown>;
+      const metadata = (
+        typeof row.metadata === "string" ? JSON.parse(row.metadata) : row.metadata
+      ) as Record<string, unknown>;
       if (filter && !matchesFilter(metadata, filter)) continue;
 
       const stored = parsePgVector(row.vector as string);
