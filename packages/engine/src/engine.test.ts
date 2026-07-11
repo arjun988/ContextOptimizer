@@ -38,11 +38,11 @@ describe("ContextOptimizerEngine", () => {
         currentFile: "src/login.ts",
         cursorPosition: { line: 5, column: 0 },
         openFiles: ["src/login.ts"],
-        budget: 4000,
       });
 
       expect(context.snippets.length).toBeGreaterThan(0);
-      expect(context.totalTokens).toBeLessThanOrEqual(4000);
+      expect(context.totalTokens).toBeGreaterThan(0);
+      expect(context.totalTokens).toBeLessThan(2000);
       expect(
         context.snippets.some(
           (s) => s.content.includes("refreshToken") || s.content.includes("AuthService"),

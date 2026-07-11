@@ -36,8 +36,9 @@ export class HybridSemanticSearch implements SemanticSearch {
   private keywordWeight: number;
 
   constructor(private readonly options: HybridSearchOptions) {
-    this.semanticWeight = options.semanticWeight ?? 0.7;
-    this.keywordWeight = options.keywordWeight ?? 0.3;
+    const prefersKeywords = ["fake", "local"].includes(options.embedder.provider);
+    this.semanticWeight = prefersKeywords ? 0.25 : (options.semanticWeight ?? 0.7);
+    this.keywordWeight = prefersKeywords ? 0.75 : (options.keywordWeight ?? 0.3);
   }
 
   async indexChunks(chunks: Chunk[]): Promise<void> {
@@ -111,6 +112,18 @@ export class HybridSemanticSearch implements SemanticSearch {
     for (const result of vectorResults) {
       const existing = combined.get(result.id) ?? 0;
       combined.set(result.id, existing + result.score * this.semanticWeight);
+    }
+
+    for (const chunk of allChunks) {
+      const symbolName = chunk.metadata.symbolName;
+      if (!symbolName) continue;
+
+      const symbolTerms = tokenizeForSearch(symbolName);
+      const overlap = queryTerms.filter((term) => symbolTerms.includes(term)).length;
+      if (overlap === 0) continue;
+
+      const boost = (overlap / Math.max(queryTerms.length, 1)) * this.keywordWeight;
+      combined.set(chunk.id, (combined.get(chunk.id) ?? 0) + boost);
     }
 
     const sorted = [...combined.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit);
@@ -207,13 +220,17 @@ export class ContextRetrievalEngine implements ContextRetriever {
 
     const ranked = await this.options.ranker.rank(candidates, rankingContext);
     const budget = this.budgetManager.getBudget(request.budget);
+    const totalChunks = (await this.options.storage.getChunks()).length;
 
     const withTokens = ranked.map((item) => ({
       ...item,
       tokenCount: this.options.tokenCounter.count(item.content),
     }));
 
-    const { selected, totalTokens } = this.budgetManager.fillWithinBudget(withTokens, budget);
+    const { selected, totalTokens } =
+      budget !== undefined
+        ? this.budgetManager.fillWithinBudget(withTokens, budget)
+        : this.budgetManager.selectAdaptive(withTokens, { totalChunks });
     const limit = request.limit ?? selected.length;
 
     const snippets = selected.slice(0, limit).map((item) => ({
@@ -262,14 +279,32 @@ export class ContextRetrievalEngine implements ContextRetriever {
   ): Promise<Chunk[]> {
     const expanded: Chunk[] = [];
     const seen = new Set<string>();
+    const totalChunks = (await this.options.storage.getChunks()).length;
+    const isSmallRepo = totalChunks <= 50;
+    const seedCount = isSmallRepo ? 2 : 5;
+    const neighborDepth = isSmallRepo ? 1 : 2;
+    const neighborLimit = isSmallRepo ? 3 : 10;
 
-    for (const result of searchResults.slice(0, 5)) {
-      if (!result.symbolId) continue;
+    if (isSmallRepo && searchResults.length >= 3) {
+      if (request.currentFile) {
+        const fileChunks = await this.options.storage.getChunks(request.currentFile);
+        for (const chunk of fileChunks.slice(0, 2)) {
+          if (!seen.has(chunk.id)) {
+            seen.add(chunk.id);
+            expanded.push(chunk);
+          }
+        }
+      }
+      return expanded;
+    }
+
+    for (const result of searchResults.slice(0, seedCount)) {
+      if (!result.symbolId || result.score < 0.1) continue;
       const neighbors = await this.options.graph.neighbors({
         nodeId: result.symbolId,
-        depth: 2,
+        depth: neighborDepth,
         edgeKinds: ["calls", "imports", "references"],
-        limit: 10,
+        limit: neighborLimit,
       });
 
       for (const neighbor of neighbors) {

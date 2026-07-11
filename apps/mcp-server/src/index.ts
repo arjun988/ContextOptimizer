@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
+import { createEmbedderFromEnv } from "@contextoptimizer/embeddings";
 import { createEngine } from "@contextoptimizer/engine";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
 const repoPath = resolve(process.env.REPO_PATH ?? process.cwd());
-const engine = createEngine({ repoPath });
+const engine = createEngine({
+  repoPath,
+  embedder: createEmbedderFromEnv(),
+  defaultBudget: process.env.DEFAULT_BUDGET ? Number(process.env.DEFAULT_BUDGET) : undefined,
+});
 await engine.initialize();
 
 const server = new McpServer({
@@ -61,7 +66,7 @@ server.tool(
     budget: z.number().optional(),
   },
   async ({ task, currentFile, budget }) => {
-    const context = await engine.getContext({ task, currentFile, budget: budget ?? 8000 });
+    const context = await engine.getContext({ task, currentFile, budget });
     return { content: [{ type: "text", text: JSON.stringify(context, null, 2) }] };
   },
 );

@@ -73,11 +73,48 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+export function splitCodeIdentifiers(text: string): string[] {
+  const tokens: string[] = [];
+
+  for (const segment of text.split(/[^a-zA-Z0-9_./-]+/)) {
+    if (!segment) continue;
+
+    const lower = segment.toLowerCase();
+    tokens.push(lower);
+
+    const camelParts = segment
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+      .split(/\s+/)
+      .map((part) => part.toLowerCase())
+      .filter((part) => part.length > 0);
+
+    for (const part of camelParts) {
+      tokens.push(part);
+    }
+
+    for (const pathPart of segment.split(/[./_-]+/)) {
+      if (pathPart.length > 1) {
+        tokens.push(pathPart.toLowerCase());
+      }
+    }
+  }
+
+  return tokens;
+}
+
 export function tokenizeForSearch(text: string): string[] {
-  return text
-    .toLowerCase()
-    .split(/[^a-z0-9_]+/i)
-    .filter((t) => t.length > 1);
+  const seen = new Set<string>();
+  const tokens: string[] = [];
+
+  for (const token of splitCodeIdentifiers(text)) {
+    if (token.length < 2) continue;
+    if (seen.has(token)) continue;
+    seen.add(token);
+    tokens.push(token);
+  }
+
+  return tokens;
 }
 
 export function bm25Score(

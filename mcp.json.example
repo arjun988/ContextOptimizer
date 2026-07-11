@@ -5,7 +5,10 @@
       "args": ["./apps/mcp-server/dist/index.js"],
       "cwd": "C:/absolute/path/to/ContextOptimizer",
       "env": {
-        "REPO_PATH": "C:/absolute/path/to/your/project"
+        "REPO_PATH": "C:/absolute/path/to/your/project",
+        "EMBEDDING_PROVIDER": "local",
+        "OPENAI_API_KEY": "",
+        "VOYAGE_API_KEY": ""
       }
     }
   }

@@ -1,10 +1,5 @@
 import { resolve } from "node:path";
-import {
-  FakeEmbedder,
-  OpenAIEmbedder,
-  ResilientEmbedder,
-  VoyageEmbedder,
-} from "@contextoptimizer/embeddings";
+import { createEmbedderFromEnv } from "@contextoptimizer/embeddings";
 import { type EngineConfig, createEngine } from "@contextoptimizer/engine";
 import { createLogger } from "@contextoptimizer/observability";
 import { createPostgresStorage } from "@contextoptimizer/storage-postgres";
@@ -12,32 +7,17 @@ import { createInMemoryVectorStore, createPgVectorStore } from "@contextoptimize
 
 const logger = createLogger({ name: "api" });
 
-function createEmbedderFromEnv() {
-  const fallback = new FakeEmbedder();
-  const provider = process.env.EMBEDDING_PROVIDER ?? "fake";
-
-  if (provider === "openai" && process.env.OPENAI_API_KEY) {
-    const primary = new OpenAIEmbedder({ apiKey: process.env.OPENAI_API_KEY });
-    return new ResilientEmbedder(primary, fallback, (error) => {
-      logger.warn({ error }, "Embedding provider degraded to fake embedder");
-    });
-  }
-
-  if (provider === "voyage" && process.env.VOYAGE_API_KEY) {
-    const primary = new VoyageEmbedder({ apiKey: process.env.VOYAGE_API_KEY });
-    return new ResilientEmbedder(primary, fallback, (error) => {
-      logger.warn({ error }, "Embedding provider degraded to fake embedder");
-    });
-  }
-
-  return fallback;
-}
-
 export function createEngineFromEnv(): ReturnType<typeof createEngine> {
   const repoPath = resolve(process.env.REPO_PATH ?? process.cwd());
+  const embedder = createEmbedderFromEnv({
+    onDegrade: (error) => {
+      logger.warn({ error }, "Embedding provider degraded to local code-aware embedder");
+    },
+  });
+
   const config: EngineConfig = {
     repoPath,
-    embedder: createEmbedderFromEnv(),
+    embedder,
     defaultBudget: process.env.DEFAULT_BUDGET ? Number(process.env.DEFAULT_BUDGET) : undefined,
   };
 
@@ -49,7 +29,7 @@ export function createEngineFromEnv(): ReturnType<typeof createEngine> {
     if (process.env.USE_PGVECTOR !== "false") {
       config.vectorStore = createPgVectorStore({
         pool,
-        dimensions: Number(process.env.EMBEDDING_DIMENSIONS ?? 384),
+        dimensions: embedder.dimensions,
       });
     } else {
       config.vectorStore = createInMemoryVectorStore();

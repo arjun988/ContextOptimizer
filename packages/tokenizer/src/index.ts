@@ -29,10 +29,10 @@ export class TiktokenCounter implements TokenCounter {
 export class BudgetManager {
   constructor(
     private readonly counter: TokenCounter,
-    private readonly defaultBudget = 8000,
+    private readonly defaultBudget?: number,
   ) {}
 
-  getBudget(requested?: number): number {
+  getBudget(requested?: number): number | undefined {
     return requested ?? this.defaultBudget;
   }
 
@@ -48,6 +48,55 @@ export class BudgetManager {
       if (totalTokens + tokens > budget) break;
       selected.push({ ...item, tokenCount: tokens } as T);
       totalTokens += tokens;
+    }
+
+    return { selected, totalTokens };
+  }
+
+  selectAdaptive<T extends { content: string; score: number; tokenCount?: number }>(
+    items: T[],
+    options: { totalChunks: number; maxBudget?: number },
+  ): { selected: T[]; totalTokens: number } {
+    if (items.length === 0) {
+      return { selected: [], totalTokens: 0 };
+    }
+
+    const repoCap =
+      options.totalChunks <= 30
+        ? 1500
+        : options.totalChunks <= 200
+          ? 4000
+          : options.totalChunks <= 1000
+            ? 8000
+            : 12000;
+    const maxSnippets =
+      options.totalChunks <= 30 ? 5 : options.totalChunks <= 200 ? 12 : options.totalChunks <= 1000 ? 20 : 30;
+    const effectiveMax = Math.min(options.maxBudget ?? repoCap, repoCap);
+    const topScore = items[0]?.score ?? 0;
+    const selected: T[] = [];
+    let totalTokens = 0;
+
+    for (const item of items) {
+      if (selected.length >= maxSnippets) break;
+
+      const tokens = item.tokenCount ?? this.counter.count(item.content);
+
+      if (selected.length > 0 && topScore > 0) {
+        const relativeScore = item.score / topScore;
+        if (relativeScore < 0.35 && selected.length >= 3) break;
+        if (relativeScore < 0.2) break;
+      }
+
+      if (totalTokens + tokens > effectiveMax) break;
+
+      selected.push({ ...item, tokenCount: tokens } as T);
+      totalTokens += tokens;
+    }
+
+    if (selected.length === 0) {
+      const first = items[0]!;
+      const tokens = first.tokenCount ?? this.counter.count(first.content);
+      return { selected: [{ ...first, tokenCount: tokens } as T], totalTokens: tokens };
     }
 
     return { selected, totalTokens };

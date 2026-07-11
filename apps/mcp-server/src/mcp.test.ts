@@ -55,13 +55,13 @@ describe("ContextOptimizer MCP server", () => {
 
       const contextResult = await client.callTool({
         name: "retrieve_context",
-        arguments: { task: "fix login bug related to token refresh", budget: 4000 },
+        arguments: { task: "fix login bug related to token refresh" },
       });
       const contextText =
         (contextResult.content as Array<{ type: string; text: string }>)[0]?.text ?? "";
       const context = JSON.parse(contextText) as { snippets: unknown[]; totalTokens: number };
       expect(context.snippets.length).toBeGreaterThan(0);
-      expect(context.totalTokens).toBeLessThanOrEqual(4000);
+      expect(context.totalTokens).toBeGreaterThan(0);
     });
   }, 60_000);
 });

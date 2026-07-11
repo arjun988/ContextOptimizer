@@ -20,7 +20,7 @@ import type {
   SymbolQuery,
   VectorStore,
 } from "@contextoptimizer/core";
-import { FakeEmbedder } from "@contextoptimizer/embeddings";
+import { createDefaultEmbedder } from "@contextoptimizer/embeddings";
 import { createGraph } from "@contextoptimizer/graph";
 import { createIndexer } from "@contextoptimizer/indexer";
 import { createMemoryStore } from "@contextoptimizer/memory";
@@ -69,7 +69,7 @@ export class ContextOptimizerEngine {
 
     this.storage = config.storage ?? createSqliteStorage(dbPath);
     const parser = createParser();
-    const embedder = config.embedder ?? new FakeEmbedder();
+    const embedder = config.embedder ?? createDefaultEmbedder();
 
     this.indexer = createIndexer({
       storage: this.storage,
@@ -250,4 +250,4 @@ export function createEngine(config: EngineConfig): ContextOptimizerEngine {
   return new ContextOptimizerEngine(config);
 }
 
-export { FakeEmbedder, createParser, createSqliteStorage, createTokenCounter };
+export { createDefaultEmbedder, createParser, createSqliteStorage, createTokenCounter };

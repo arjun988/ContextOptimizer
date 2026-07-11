@@ -76,7 +76,7 @@ async function runContextOptimizer(
   task: BenchmarkTask,
 ): Promise<BenchmarkResult> {
   const start = Date.now();
-  const context = await engine.getContext({ task: task.query, budget: 4000 });
+  const context = await engine.getContext({ task: task.query });
   const content = context.snippets.map((s) => s.content).join("\n");
   const found = task.expectedSymbols.filter((s) => content.includes(s));
   return {
