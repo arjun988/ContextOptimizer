@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { cosineSimilarity } from "@contextoptimizer/core";
+import { describe, expect, it } from "vitest";
 import { CodeAwareEmbedder } from "./code-aware.js";
 import { FakeEmbedder } from "./providers.js";
 

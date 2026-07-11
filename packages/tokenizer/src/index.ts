@@ -70,7 +70,13 @@ export class BudgetManager {
             ? 8000
             : 12000;
     const maxSnippets =
-      options.totalChunks <= 30 ? 5 : options.totalChunks <= 200 ? 12 : options.totalChunks <= 1000 ? 20 : 30;
+      options.totalChunks <= 30
+        ? 5
+        : options.totalChunks <= 200
+          ? 12
+          : options.totalChunks <= 1000
+            ? 20
+            : 30;
     const effectiveMax = Math.min(options.maxBudget ?? repoCap, repoCap);
     const topScore = items[0]?.score ?? 0;
     const selected: T[] = [];
