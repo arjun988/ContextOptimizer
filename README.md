@@ -247,25 +247,62 @@ Then re-index with `force: true` — vectors must be rebuilt when the embedder c
 
 ## Token usage and cost savings
 
-ContextOptimizer saves tokens by **returning only relevant snippets** instead of whole files or unbounded `@codebase` results.
+ContextOptimizer reduces input tokens by **ranking and selecting only relevant code snippets** instead of sending whole files, symbol dumps, or unbounded search results.
 
-| Scenario | Typical behavior |
-|----------|------------------|
-| **Small repo** (< 30 chunks) | Adaptive cap ~1500 tokens, max 5 snippets |
-| **Medium repo** (30–200 chunks) | Adaptive cap ~4000 tokens |
-| **Large repo** (200+ chunks) | Adaptive cap up to ~12000 tokens |
-| **Explicit budget** | Pass `budget` to `retrieve_context` or `budget_context` |
+### Measured results (included benchmark)
 
-Selection stops when relevance drops (snippet score falls below 35% of the top hit), so you don't pay for low-value context.
+Run locally: `pnpm --filter @contextoptimizer/benchmarks bench`
 
-**Benchmark** (small 4-file fixture, no budget):
+Fixture: 4-file sample repo, local embedder, adaptive selection (no fixed budget), 2 coding tasks.
 
-| Method | Avg tokens | Recall |
-|--------|------------|--------|
-| simple-rag (top-5) | ~320 | 100% |
-| contextoptimizer (adaptive) | ~290 | 100% |
+| Method | auth-token-refresh | login-flow | **Avg tokens** | Recall |
+|--------|-------------------:|-----------:|---------------:|-------:|
+| **naive** (symbol names only) | 22 | 22 | **22** | 100% |
+| **simple-rag** (top-5 chunks) | 330 | 311 | **321** | 100% |
+| **contextoptimizer** (adaptive) | 302 | 282 | **292** | 100% |
 
-On large monorepos where Cursor might inject 40k+ tokens of context, capping at a few thousand relevant snippets can reduce input tokens by 80%+. Savings depend on how much context the agent would otherwise load.
+**Measured savings**
+
+| Comparison | Token reduction | Notes |
+|------------|----------------:|-------|
+| vs simple-rag | **8.9%** fewer tokens (321 → 292) | Same 100% recall on both tasks |
+| vs naive symbol dump | Uses ~13× more tokens | Naive only sends symbol *names*, not code content — not a fair quality comparison |
+| Latency overhead | +5–8 ms per task | Ranking + graph scoring on top of search |
+
+### Adaptive caps by repo size
+
+When no `budget` is passed, selection stops when relevance drops — it does not fill to the cap.
+
+| Repo size | Max adaptive cap | Max snippets |
+|-----------|-----------------:|-------------:|
+| Small (< 30 chunks) | ~1,500 tokens | 5 |
+| Medium (30–200 chunks) | ~4,000 tokens | 12 |
+| Large (200–1000 chunks) | ~8,000 tokens | 20 |
+| Very large (1000+ chunks) | ~12,000 tokens | 30 |
+
+Selection stops when a snippet's score falls below **35%** of the top hit (minimum 3 snippets kept).
+
+### Estimated savings vs typical Cursor usage
+
+These are **not yet benchmarked on this repo** — they describe the expected value on larger projects:
+
+| Cursor default behavior | Typical size | With ContextOptimizer | Estimated reduction |
+|-------------------------|-------------:|--------------------:|--------------------:|
+| `@codebase` semantic search | 5k–30k tokens | 300–6k (adaptive) | **40–90%** |
+| Open files attached to chat | 2k–20k tokens | Only relevant snippets | **50–85%** |
+| Long chat history (10+ turns) | 10k–100k+ tokens | Unchanged — use `compress_prompt` | Varies |
+| Small repo (< 10 files) | 1k–5k tokens | ~300 tokens | **0–15%** (may be similar to RAG) |
+
+**Rule of thumb:** savings scale with how much *unnecessary* context Cursor would otherwise send. On a 500-file monorepo where the agent dumps 40k tokens, capping retrieval at ~3k relevant snippets is roughly **90%** input reduction for that retrieval step.
+
+### What affects your results
+
+| Factor | Impact |
+|--------|--------|
+| **Repo size** | Larger repos → bigger gap vs unbounded `@codebase` |
+| **Embedder** | `local` (default) is good for code terms; `openai`/`voyage` improve vague NL queries |
+| **Explicit `budget`** | Higher budget = more tokens; omit budget for adaptive (recommended) |
+| **Query style** | `"refreshToken auth"` retrieves better than `"how does auth work"` with local embedder |
 
 ---
 
@@ -494,7 +531,23 @@ Compare ContextOptimizer vs naive retrieval and simple RAG:
 pnpm --filter @contextoptimizer/benchmarks bench
 ```
 
-Runs without a fixed budget (adaptive selection). Expect ~5–15% token savings vs simple top-5 RAG on small repos, with higher savings on large codebases.
+Example output (adaptive selection, no fixed budget):
+
+```
+| Method           | Task              | Tokens | Recall |
+|------------------|-------------------|--------|--------|
+| naive            | auth-token-refresh| 22     | 100%   |
+| simple-rag       | auth-token-refresh| 330    | 100%   |
+| contextoptimizer | auth-token-refresh| 302    | 100%   |
+| naive            | login-flow        | 22     | 100%   |
+| simple-rag       | login-flow        | 311    | 100%   |
+| contextoptimizer | login-flow        | 282    | 100%   |
+
+Average token savings vs simple RAG: 8.9%
+Average recall: ContextOptimizer 100% vs RAG 100%
+```
+
+On the small fixture, savings vs simple RAG are **~9%**. Larger real-world repos (where baseline context is 10k–100k+ tokens) should see much higher reductions — see [Token usage and cost savings](#token-usage-and-cost-savings).
 
 ---
 
