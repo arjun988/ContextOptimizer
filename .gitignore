@@ -1,11 +1,47 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
+build/
 .turbo/
+*.tsbuildinfo
+
+# Docusaurus
+.docusaurus/
+
+# Test / coverage
 coverage/
+.nyc_output/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Python packaging
+packages/sdk-python/dist/
+
+# Local index / runtime data
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
+.contextoptimizer/
 *.lance/
 .data/
+
+# Environment
 .env
+.env.*
+!.env.example
+
+# OS / editor
 .DS_Store
+Thumbs.db
 *.log
+.vscode/
+.idea/

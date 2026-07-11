@@ -194,6 +194,41 @@ export class VoyageEmbedder implements Embedder {
   }
 }
 
+export class ResilientEmbedder implements Embedder {
+  readonly provider: string;
+  readonly model: string;
+  readonly dimensions: number;
+  private degraded = false;
+
+  constructor(
+    private readonly primary: Embedder,
+    private readonly fallback: Embedder,
+    private readonly onDegrade?: (error: unknown) => void,
+  ) {
+    this.provider = primary.provider;
+    this.model = primary.model;
+    this.dimensions = primary.dimensions;
+  }
+
+  isDegraded(): boolean {
+    return this.degraded;
+  }
+
+  async embed(request: EmbeddingRequest): Promise<EmbeddingResult> {
+    if (this.degraded) {
+      return this.fallback.embed(request);
+    }
+
+    try {
+      return await this.primary.embed(request);
+    } catch (error) {
+      this.degraded = true;
+      this.onDegrade?.(error);
+      return this.fallback.embed(request);
+    }
+  }
+}
+
 export class CachedEmbedder implements Embedder {
   readonly provider: string;
   readonly model: string;

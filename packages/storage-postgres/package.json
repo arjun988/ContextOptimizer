@@ -1,5 +1,5 @@
 {
-  "name": "@contextoptimizer/vector-store",
+  "name": "@contextoptimizer/storage-postgres",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@contextoptimizer/core": "workspace:*",
-    "@lancedb/lancedb": "^0.17.0",
     "pg": "^8.13.1"
   },
   "devDependencies": {

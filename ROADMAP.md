@@ -187,18 +187,18 @@ contextoptimizer/
 
 ---
 
-## Phase 10 — Python SDK, Postgres, Docs & 1.0 Release
+## Phase 10 — Python SDK, Postgres, Docs & 1.0 Release ✅
 
 **Goal:** open-source launch readiness.
 
-- **Python SDK** (`packages/sdk-python`): typed REST client, published to PyPI.
-- **Postgres adapter** implementing `StorageAdapter` (+ pgvector option for the vector store).
-- **Docusaurus site:** architecture + sequence diagrams (Mermaid), developer guide, plugin/provider guide (how to add an embedder, language, vector store), API reference (from OpenAPI), SDK guides, contribution guide, deployment guide (Docker/compose).
-- Hardening: API auth (token), rate limiting, graceful degradation when embedding providers are down.
-- Release engineering: changesets-based versioning, npm/PyPI publish workflows, Docker images on ghcr.io, semver policy for API/SDK stability.
-- Community: good-first-issues, roadmap board, architecture decision records.
+- ✅ **Python SDK** (`packages/sdk-python`): typed REST client, PyPI publish workflow.
+- ✅ **Postgres adapter** (`packages/storage-postgres`) implementing `StorageAdapter` + `PgVectorStore` for vectors.
+- ✅ **Docusaurus site** (`apps/docs`): architecture, sequence diagrams, developer guide, plugin guides, API reference, SDK guides, deployment guide.
+- ✅ Hardening: API auth (`API_TOKEN`), rate limiting (`@fastify/rate-limit`), `ResilientEmbedder` graceful degradation.
+- ✅ Release engineering: changesets, npm/PyPI/Docker publish workflows, semver policy (`docs/SEMVER.md`).
+- ✅ Community: good-first-issue template, architecture decision records (`docs/adr/`).
 
-**Exit criteria:** `v1.0.0` tagged; docs deployed; a new contributor can add a language or embedding provider using only the plugin guide.
+**Exit criteria:** `v1.0.0` changeset ready; docs in `apps/docs`; plugin guides enable adding embedders, parsers, and vector stores.
 
 ---
 

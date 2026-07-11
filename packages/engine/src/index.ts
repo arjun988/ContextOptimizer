@@ -16,7 +16,9 @@ import type {
   ParseResult,
   SearchQuery,
   SearchResult,
+  StorageAdapter,
   SymbolQuery,
+  VectorStore,
 } from "@contextoptimizer/core";
 import { FakeEmbedder } from "@contextoptimizer/embeddings";
 import { createGraph } from "@contextoptimizer/graph";
@@ -33,17 +35,21 @@ import { createInMemoryVectorStore } from "@contextoptimizer/vector-store";
 export interface EngineConfig {
   repoPath: string;
   dataDir?: string;
+  databaseUrl?: string;
+  storage?: StorageAdapter;
+  vectorStore?: VectorStore;
+  usePgVector?: boolean;
   embedder?: Embedder;
   defaultBudget?: number;
 }
 
 export class ContextOptimizerEngine {
-  private storage: ReturnType<typeof createSqliteStorage>;
+  private storage: StorageAdapter;
   private indexer: ReturnType<typeof createIndexer>;
   private graph: ReturnType<typeof createGraph>;
   private semanticSearch: ReturnType<typeof createSemanticSearch>;
   private retriever: ReturnType<typeof createContextRetriever>;
-  private vectorStore: ReturnType<typeof createInMemoryVectorStore>;
+  private vectorStore: VectorStore;
   private compression: ReturnType<typeof createCompressionPipeline>;
   private memory: ReturnType<typeof createMemoryStore>;
   private tokenCounter: ReturnType<typeof createTokenCounter>;
@@ -61,7 +67,7 @@ export class ContextOptimizerEngine {
     mkdirSync(this.dataDir, { recursive: true });
     const dbPath = join(this.dataDir, "index.db");
 
-    this.storage = createSqliteStorage(dbPath);
+    this.storage = config.storage ?? createSqliteStorage(dbPath);
     const parser = createParser();
     const embedder = config.embedder ?? new FakeEmbedder();
 
@@ -76,7 +82,7 @@ export class ContextOptimizerEngine {
       repoPath: config.repoPath,
     });
 
-    this.vectorStore = createInMemoryVectorStore();
+    this.vectorStore = config.vectorStore ?? createInMemoryVectorStore();
     this.tokenCounter = createTokenCounter();
     this.budgetManager = new BudgetManager(this.tokenCounter, config.defaultBudget);
     this.compression = createCompressionPipeline({ tokenCounter: this.tokenCounter });

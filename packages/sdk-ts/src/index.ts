@@ -1,4 +1,5 @@
 import type {
+  BudgetRequest,
   CompressRequest,
   ContextRequest,
   MemoryEntry,
@@ -29,17 +30,27 @@ export class ContextOptimizerClient {
     }
   }
 
-  private async fetchApi<T>(path: string, body?: unknown): Promise<T> {
+  private async fetchApi<T>(path: string, body?: unknown, method = "POST"): Promise<T> {
     if (!this.remote) throw new Error("Remote client not configured");
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (this.remote.apiKey) headers.Authorization = `Bearer ${this.remote.apiKey}`;
     const res = await fetch(`${this.remote.baseUrl}${path}`, {
-      method: "POST",
+      method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) throw new Error(`API error: ${res.status} ${await res.text()}`);
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    return text ? (JSON.parse(text) as T) : (undefined as T);
+  }
+
+  private async fetchText(path: string): Promise<string> {
+    if (!this.remote) throw new Error("Remote client not configured");
+    const headers: Record<string, string> = {};
+    if (this.remote.apiKey) headers.Authorization = `Bearer ${this.remote.apiKey}`;
+    const res = await fetch(`${this.remote.baseUrl}${path}`, { headers });
+    if (!res.ok) throw new Error(`API error: ${res.status} ${await res.text()}`);
+    return res.text();
   }
 
   async initialize(): Promise<void> {
@@ -90,9 +101,22 @@ export class ContextOptimizerClient {
     return this.fetchApi("/graph", { nodeId, depth });
   }
 
+  async budget(request: BudgetRequest) {
+    if (this.engine) return this.engine.budget(request);
+    return this.fetchApi("/budget", request);
+  }
+
+  async health() {
+    return this.fetchApi<{ status: string; repoPath: string }>("/health", undefined, "GET");
+  }
+
+  async metrics() {
+    return this.fetchText("/metrics");
+  }
+
   async doctor() {
     if (this.engine) return this.engine.doctor();
-    return this.fetchApi("/doctor");
+    return this.fetchApi("/doctor", undefined, "GET");
   }
 }
 
