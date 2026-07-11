@@ -13,7 +13,9 @@
     "format": "biome format --write .",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "publish:dry-run": "pnpm build && node scripts/npm-publish-dry-run.mjs",
+    "sync-publish-metadata": "node scripts/sync-publish-metadata.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.12",

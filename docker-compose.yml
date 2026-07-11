@@ -23,7 +23,7 @@ services:
       REPO_PATH: /repo
       DATABASE_URL: postgres://ctxopt:ctxopt@postgres:5432/ctxopt
       USE_PGVECTOR: "true"
-      EMBEDDING_PROVIDER: fake
+      EMBEDDING_PROVIDER: local
       API_TOKEN: ${API_TOKEN:-dev-token}
       RATE_LIMIT_MAX: 200
     volumes:

@@ -1,10 +1,15 @@
 {
   "name": "@contextoptimizer/parser",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "test": "vitest run --passWithNoTests src",
@@ -23,5 +28,24 @@
     "tree-sitter-rust": "^0.23.2",
     "tree-sitter-typescript": "^0.23.2"
   },
-  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "description": "tree-sitter parser for ContextOptimizer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contextoptimizer/contextoptimizer.git",
+    "directory": "packages/parser"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
 }

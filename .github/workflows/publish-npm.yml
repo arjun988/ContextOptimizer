@@ -24,16 +24,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
-      - name: Publish packages
-        run: |
-          for pkg in core engine sdk-ts storage-postgres storage vector-store embeddings retrieval ranking compression memory parser indexer graph tokenizer cache observability; do
-            if [ -f "packages/$pkg/package.json" ] && grep -q '"private": false' "packages/$pkg/package.json" 2>/dev/null || ! grep -q '"private"' "packages/$pkg/package.json" 2>/dev/null; then
-              cd "packages/$pkg"
-              if grep -q '"name"' package.json; then
-                npm publish --access public || true
-              fi
-              cd -
-            fi
-          done
+      - name: Publish all packages via changesets
+        run: pnpm changeset publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,16 +1,42 @@
 {
   "name": "@contextoptimizer/cache",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "test": "vitest run --passWithNoTests src",
     "lint": "biome check src",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": { "@contextoptimizer/core": "workspace:*" },
-  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+  "dependencies": {
+    "@contextoptimizer/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "description": "Caching utilities for ContextOptimizer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contextoptimizer/contextoptimizer.git",
+    "directory": "packages/cache"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
 }

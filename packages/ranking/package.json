@@ -1,10 +1,15 @@
 {
   "name": "@contextoptimizer/ranking",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "test": "vitest run --passWithNoTests src",
@@ -14,5 +19,24 @@
   "dependencies": {
     "@contextoptimizer/core": "workspace:*"
   },
-  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "description": "Multi-factor ranker for ContextOptimizer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contextoptimizer/contextoptimizer.git",
+    "directory": "packages/ranking"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
 }

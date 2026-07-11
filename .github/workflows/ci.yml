@@ -36,3 +36,19 @@ jobs:
 
       - name: Check circular dependencies
         run: pnpm exec madge --circular --extensions ts packages/
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python SDK with dev dependencies
+        run: pip install "./packages/sdk-python[dev]"
+
+      - name: Test Python SDK
+        working-directory: packages/sdk-python
+        run: python -m pytest tests/ -q

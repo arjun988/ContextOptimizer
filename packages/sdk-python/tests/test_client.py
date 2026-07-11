@@ -1,3 +1,4 @@
+import httpx
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -30,8 +31,6 @@ def test_search(httpx_mock: HTTPXMock):
 
 
 def test_auth_header(httpx_mock: HTTPXMock):
-    httpx_mock.add_response(json={"healthy": True, "checks": {}})
-
     def check_auth(request):
         assert request.headers["authorization"] == "Bearer secret"
         return httpx.Response(200, json={"healthy": True, "checks": {}})

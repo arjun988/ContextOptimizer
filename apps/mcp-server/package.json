@@ -1,8 +1,10 @@
 {
   "name": "@contextoptimizer/mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
-  "bin": { "contextoptimizer-mcp": "./dist/index.js" },
+  "bin": {
+    "contextoptimizer-mcp": "./dist/index.js"
+  },
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsup src/index.ts --format esm --clean",
@@ -16,5 +18,24 @@
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^3.24.1"
   },
-  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "description": "MCP server for ContextOptimizer — primary user interface",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contextoptimizer/contextoptimizer.git",
+    "directory": "apps/mcp-server"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
 }

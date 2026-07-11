@@ -561,6 +561,10 @@ pnpm typecheck
 
 See [ROADMAP.md](./ROADMAP.md) for phased development (Phases 0–10 complete; VS Code extension and post-1.0 items in backlog).
 
+## Publishing
+
+See [docs/RELEASE.md](./docs/RELEASE.md) for npm/PyPI/Docker release instructions, GitHub secrets setup, and dry-run commands.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) and the [contributing guide](apps/docs/docs/guides/contributing.md).

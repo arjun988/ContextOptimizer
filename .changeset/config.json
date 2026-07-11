@@ -2,10 +2,33 @@
   "$schema": "https://unpkg.com/@changesets/config@3.0.3/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@contextoptimizer/cache",
+      "@contextoptimizer/compression",
+      "@contextoptimizer/core",
+      "@contextoptimizer/embeddings",
+      "@contextoptimizer/engine",
+      "@contextoptimizer/graph",
+      "@contextoptimizer/indexer",
+      "@contextoptimizer/memory",
+      "@contextoptimizer/observability",
+      "@contextoptimizer/parser",
+      "@contextoptimizer/ranking",
+      "@contextoptimizer/retrieval",
+      "@contextoptimizer/sdk-ts",
+      "@contextoptimizer/storage",
+      "@contextoptimizer/storage-postgres",
+      "@contextoptimizer/tokenizer",
+      "@contextoptimizer/vector-store",
+      "@contextoptimizer/api",
+      "@contextoptimizer/cli",
+      "@contextoptimizer/mcp"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@contextoptimizer/docs", "@contextoptimizer/api", "@contextoptimizer/cli", "@contextoptimizer/mcp-server"]
+  "ignore": ["@contextoptimizer/docs", "@contextoptimizer/benchmarks"]
 }

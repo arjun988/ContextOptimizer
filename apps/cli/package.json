@@ -1,8 +1,10 @@
 {
   "name": "@contextoptimizer/cli",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
-  "bin": { "omni": "./dist/index.js" },
+  "bin": {
+    "omni": "./dist/index.js"
+  },
   "scripts": {
     "omni": "node dist/index.js",
     "build": "tsup src/index.ts --format esm --clean",
@@ -14,5 +16,24 @@
     "@contextoptimizer/engine": "workspace:*",
     "commander": "^13.1.0"
   },
-  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "description": "CLI (omni) for ContextOptimizer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contextoptimizer/contextoptimizer.git",
+    "directory": "apps/cli"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
 }
